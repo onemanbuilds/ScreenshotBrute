@@ -23,19 +23,10 @@ class Main:
     def SetTitle(self,title_name:str):
         os.system("title {0}".format(title_name))
         
-
     def ReadFile(self,filename,method):
         with open(filename,method) as f:
             content = [line.strip('\n') for line in f]
             return content
-
-    def PrintText(self,info_name,text,info_color:Fore,text_color:Fore):
-        lock = Lock()
-        lock.acquire()
-        sys.stdout.flush()
-        text = text.encode('ascii','replace').decode()
-        sys.stdout.write(f'[{info_color+info_name+Fore.RESET}] '+text_color+f'{text}\n')
-        lock.release()
 
     def GetRandomProxy(self):
         proxies_file = self.ReadFile('proxies.txt','r')
@@ -48,11 +39,20 @@ class Main:
     def __init__(self):
         self.SetTitle('One Man Builds Screenshot Brute Tool')
         self.clear()
-        init()
+        init(convert=True)
+        title = Fore.YELLOW+"""
+                            
+                    ____ ____ ____ ____ ____ _  _ ____ _  _ ____ ___    ___  ____ _  _ ___ ____ 
+                    [__  |    |__/ |___ |___ |\ | [__  |__| |  |  |     |__] |__/ |  |  |  |___ 
+                    ___] |___ |  \ |___ |___ | \| ___] |  | |__|  |     |__] |  \ |__|  |  |___ 
+                                                                                                
+                            
+        """
+        print(title)
         self.ua = UserAgent()
-        self.use_proxy = int(input('[QUESTION] Would you like to use proxies [1] yes [0] no: '))
-        self.download_picture = int(input('[QUESTION] Would you like to download pictures [1] yes [0] no: '))
-        self.option = int(input('[QUESTION] Would you like to scrape from [1]PrntSC [2]Imgur [3] Both: '))
+        self.use_proxy = int(input(Fore.YELLOW+'['+Fore.WHITE+'>'+Fore.YELLOW+'] Would you like to use proxies [1] yes [0] no: '))
+        self.download_picture = int(input(Fore.YELLOW+'['+Fore.WHITE+'>'+Fore.YELLOW+'] Would you like to download pictures [1] yes [0] no: '))
+        self.option = int(input(Fore.YELLOW+'['+Fore.WHITE+'>'+Fore.YELLOW+'] Would you like to scrape from [1]PrntSC [2]Imgur [3] Both: '))
         print('')
         self.header = headers = {'User-Agent':self.ua.random}
 
@@ -76,7 +76,7 @@ class Main:
                 download_link = download_link['content']
 
                 if 'image' in download_link:
-                    self.PrintText('GOOD',link,Fore.GREEN,Fore.WHITE)
+                    print(Fore.GREEN+'['+Fore.WHITE+'!'+Fore.GREEN+'] GOOD | {0}'.format(link))
                     with open('prntsc_good_links.txt','a') as f:
                         f.write(link+'\n')
 
@@ -90,11 +90,11 @@ class Main:
                             f.write(response.content)
                         
                 elif '//st.prntscr.com/' in download_link:
-                    self.PrintText('IMAGE REMOVED',link,Fore.RED,Fore.WHITE)
+                    print(Fore.RED+'['+Fore.WHITE+'-'+Fore.RED+'] IMAGE REMOVED | {0}'.format(link))
                     with open('prntsc_image_removed_links.txt','a') as f:
                         f.write(link+'\n')
                 else:
-                    self.PrintText('BAD',link,Fore.RED,Fore.WHITE)
+                    print(Fore.RED+'['+Fore.WHITE+'-'+Fore.RED+'] BAD | {0}'.format(link))
                     with open('prntsc_bad_links.txt','a') as f:
                         f.write(link+'\n')
 
@@ -119,7 +119,7 @@ class Main:
 
                 if response.status_code == 200:
                     if 'og:image' in response.text:
-                        self.PrintText('GOOD',link,Fore.GREEN,Fore.WHITE)
+                        print(Fore.GREEN+'['+Fore.WHITE+'!'+Fore.GREEN+'] GOOD | {0}'.format(link))
                         with open('imgur_good_links.txt','a') as f:
                             f.write(link+'\n')
 
@@ -136,16 +136,16 @@ class Main:
                             with open('Downloads/imgur/{0}'.format(filename),'wb') as f:
                                 f.write(response.content)
                     else:
-                        self.PrintText('IMAGE REMOVED',link,Fore.RED,Fore.WHITE)
+                        print(Fore.RED+'['+Fore.WHITE+'-'+Fore.RED+'] IMAGE REMOVED | {0}'.format(link))
                         with open('imgur_removed_links.txt','a') as f:
                             f.write(link+'\n')
                         
                 elif response.status_code == 404:
-                    self.PrintText('BAD',link,Fore.RED,Fore.WHITE)
+                    print(Fore.RED+'['+Fore.WHITE+'-'+Fore.RED+'] BAD | {0}'.format(link))
                     with open('imgur_bad_links.txt','a') as f:
                         f.write(link+'\n')
                 else:
-                    self.PrintText('RATELIMITED','WAITING 10 Seconds',Fore.RED,Fore.WHITE)
+                    print(Fore.RED+'['+Fore.WHITE+'-'+Fore.RED+'] RATELIMITED WAITING FOR 10 SECONDS')
                     sleep(10)
 
                 lock.release()
