@@ -127,3 +127,8 @@ output/main.exe
 ScreenshotBrute.zip
 ScreenshotBrute/proxies.txt
 ScreenshotBrute/ScreenshotBrute.exe
+imgur_removed_links.txt
+output/ScreenshotBrute.exe
+prntsc_bad_links.txt
+prntsc_good_links.txt
+prntsc_image_removed_links.txt
