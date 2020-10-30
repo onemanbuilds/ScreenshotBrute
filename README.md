@@ -2,10 +2,10 @@
  Download's valid screenshots from imgur and lightshot.
 
 # Tool
-![](https://i.ibb.co/vh5vcR5/tool.png)
+![](https://i.ibb.co/2q9ZRc1/screenshot-brute-tool.png)
 
 # Example
-![](https://i.ibb.co/J2x7H7p/example.png)
+![](https://i.ibb.co/KDknDX7/screenshot-brute-tool-example.png)
 
   
 # Legal
