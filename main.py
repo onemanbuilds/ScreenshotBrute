@@ -1,10 +1,10 @@
-from os import name,system
 import requests
+from os import name,system
 from random import choice,randint
 from sys import stdout
-from string import ascii_letters
+from string import ascii_letters,digits
 from time import sleep
-from colorama import init,Fore
+from colorama import init,Style,Fore
 from threading import Thread,active_count,Lock
 from fake_useragent import UserAgent
 from bs4 import BeautifulSoup
@@ -30,9 +30,21 @@ class Main:
 
     def GetRandomProxy(self):
         proxies_file = self.ReadFile('proxies.txt','r')
-        proxies = {
-            "http":"http://{0}".format(choice(proxies_file)),
-            "https":"https://{0}".format(choice(proxies_file))
+        proxies = {}
+        if self.proxy_type == 1:
+            proxies = {
+                "http":"http://{0}".format(choice(proxies_file)),
+                "https":"https://{0}".format(choice(proxies_file))
+            }
+        elif self.proxy_type == 2:
+            proxies = {
+                "http":"socks4://{0}".format(choice(proxies_file)),
+                "https":"socks4://{0}".format(choice(proxies_file))
+            }
+        else:
+            proxies = {
+                "http":"socks5://{0}".format(choice(proxies_file)),
+                "https":"socks5://{0}".format(choice(proxies_file))
             }
         return proxies
 
@@ -40,7 +52,7 @@ class Main:
         self.SetTitle('One Man Builds Screenshot Brute Tool')
         self.clear()
         init(convert=True)
-        title = Fore.YELLOW+"""
+        self.title = Style.BRIGHT+Fore.RED+"""
                             
                     ____ ____ ____ ____ ____ _  _ ____ _  _ ____ ___    ___  ____ _  _ ___ ____ 
                     [__  |    |__/ |___ |___ |\ | [__  |__| |  |  |     |__] |__/ |  |  |  |___ 
@@ -48,26 +60,42 @@ class Main:
                                                                                                 
                             
         """
-        print(title)
-        self.ua = UserAgent()
-        self.use_proxy = int(input(Fore.YELLOW+'['+Fore.WHITE+'>'+Fore.YELLOW+'] Would you like to use proxies [1]yes [0]no: '))
-        self.download_picture = int(input(Fore.YELLOW+'['+Fore.WHITE+'>'+Fore.YELLOW+'] Would you like to download pictures [1]yes [0]no: '))
-        self.option = int(input(Fore.YELLOW+'['+Fore.WHITE+'>'+Fore.YELLOW+'] Would you like to scrape from [1]PrntSC [2]Imgur [3]Both: '))
-        self.threads = int(input(Fore.YELLOW+'['+Fore.WHITE+'>'+Fore.YELLOW+'] Threads: '))
-        print('')
-        self.header = headers = {'User-Agent':self.ua.random}
-        self.lock = Lock()
+        print(self.title)
 
-    def PrintText(self,info_name,text,info_color:Fore):
+        self.use_proxy = int(input(Style.BRIGHT+Fore.CYAN+'['+Fore.RED+'>'+Fore.CYAN+'] ['+Fore.RED+'1'+Fore.CYAN+']Proxy ['+Fore.RED+'0'+Fore.CYAN+']Proxyless: '))
+        
+        if self.use_proxy == 1:
+            self.proxy_type = int(input(Style.BRIGHT+Fore.CYAN+'['+Fore.RED+'>'+Fore.CYAN+'] ['+Fore.RED+'1'+Fore.CYAN+']Https ['+Fore.RED+'2'+Fore.CYAN+']Socks4 ['+Fore.RED+'3'+Fore.CYAN+']Socks5: '))
+        
+        self.download_picture = int(input(Style.BRIGHT+Fore.CYAN+'['+Fore.RED+'>'+Fore.CYAN+'] ['+Fore.RED+'1'+Fore.CYAN+']Download ['+Fore.RED+'0'+Fore.CYAN+']No Download: '))
+        self.option = int(input(Style.BRIGHT+Fore.CYAN+'['+Fore.RED+'>'+Fore.CYAN+'] ['+Fore.RED+'1'+Fore.CYAN+']PrntSC ['+Fore.RED+'2'+Fore.CYAN+']Imgur ['+Fore.RED+'3'+Fore.CYAN+']Both: '))
+        self.threads = int(input(Style.BRIGHT+Fore.CYAN+'['+Fore.RED+'>'+Fore.CYAN+'] Threads: '))
+        print('')
+        self.ua = UserAgent()
+        self.header = {'User-Agent':self.ua.random}
+        self.lock = Lock()
+        self.hits = 0
+        self.downloads = 0
+        self.removeds = 0
+        self.bads = 0
+        self.retries = 0
+        
+
+    def PrintText(self,bracket_color:Fore,text_in_bracket_color:Fore,text_in_bracket,text):
         self.lock.acquire()
         stdout.flush()
         text = text.encode('ascii','replace').decode()
-        stdout.write(info_color+'['+Fore.WHITE+info_name+info_color+f'] {text}\n')
+        stdout.write(Style.BRIGHT+bracket_color+'['+text_in_bracket_color+text_in_bracket+bracket_color+'] '+bracket_color+text+'\n')
         self.lock.release()
+
+    def TitleUpdate(self):
+        while True:
+            self.SetTitle('One Man Builds Screenshot Brute Tool ^| HITS: {0} ^| DOWNLOADS: {1} ^| REMOVEDS: {2} ^| BADS: {3} ^| RETRIES: {4} ^| THREADS: {5}'.format(self.hits,self.downloads,self.removeds,self.bads,self.retries,active_count()-1))
+            sleep(0.1)
 
     def ScrapePrntSc(self):
         try:
-            random_end = ''.join(choice(ascii_letters+'0123456789') for num in range(0,randint(6,7)))
+            random_end = ''.join(choice(ascii_letters+digits) for num in range(0,randint(6,7)))
             link = 'https://prnt.sc/{0}'.format(random_end)
 
             response = ''
@@ -82,7 +110,8 @@ class Main:
             download_link = download_link['content']
 
             if 'image' in download_link:
-                self.PrintText('!','GOOD | {0}'.format(link),Fore.GREEN)
+                self.PrintText(Fore.CYAN,Fore.RED,'HIT',link)
+                self.hits += 1
                 with open('prntsc_good_links.txt','a') as f:
                     f.write(link+'\n')
 
@@ -94,23 +123,29 @@ class Main:
 
                     with open('Downloads/prntsc/{0}'.format(filename),'wb') as f:
                         f.write(response.content)
+
+                    self.downloads += 1
                     
             elif '//st.prntscr.com/' in download_link:
-                self.PrintText('-','IMAGE REMOVED | {0}'.format(link),Fore.RED)
+                self.PrintText(Fore.RED,Fore.CYAN,'IMAGE REMOVED',link)
+                self.removeds += 1
                 with open('prntsc_image_removed_links.txt','a') as f:
                     f.write(link+'\n')
             elif 'Access denied | image.prntscr.com used Cloudflare to restrict access' in response.text:
+                self.retries += 1
                 self.ScrapePrntSc()
             else:
-                self.PrintText('-','BAD | {0}'.format(link),Fore.RED)
+                self.PrintText(Fore.RED,Fore.CYAN,'BAD',link)
+                self.bads += 1
                 with open('prntsc_bad_links.txt','a') as f:
                     f.write(link+'\n')
         except:
+            self.retries += 1
             self.ScrapePrntSc()
 
     def ScrapeImgur(self):
         try:
-            random_end = ''.join(choice(ascii_letters+'0123456789') for num in range(0,7))
+            random_end = ''.join(choice(ascii_letters+digits) for num in range(0,7))
             link = 'https://imgur.com/{0}'.format(random_end)
 
             response = ''
@@ -122,7 +157,7 @@ class Main:
 
             if response.status_code == 200:
                 if 'og:image' in response.text:
-                    self.PrintText('!','GOOD | {0}'.format(link),Fore.GREEN)
+                    self.PrintText(Fore.CYAN,Fore.RED,'GOOD',link)
                     with open('imgur_good_links.txt','a') as f:
                         f.write(link+'\n')
 
@@ -138,22 +173,28 @@ class Main:
 
                         with open('Downloads/imgur/{0}'.format(filename),'wb') as f:
                             f.write(response.content)
+                        self.downloads += 1
                 else:
-                    self.PrintText('-','IMAGE REMOVED | {0}'.format(link),Fore.RED)
+                    self.PrintText(Fore.RED,Fore.CYAN,'IMAGE REMOVED',link)
+                    self.removeds += 1
                     with open('imgur_removed_links.txt','a') as f:
                         f.write(link+'\n')
                     
             elif response.status_code == 404:
-                self.PrintText('-','BAD | {0}'.format(link),Fore.RED)
+                self.PrintText(Fore.RED,Fore.CYAN,'BAD',link)
                 with open('imgur_bad_links.txt','a') as f:
                     f.write(link+'\n')
             else:
-                self.PrintText('-','RATELIMITED WAITING FOR 10 SECONDS',Fore.RED)
-                sleep(10)
+                self.retries += 1
+                self.ScrapeImgur()
+                #self.PrintText('-','RATELIMITED WAITING FOR 10 SECONDS',Fore.RED)
+                #sleep(10)
         except:
+            self.retries += 1
             self.ScrapeImgur()
-    
+
     def Start(self):
+        Thread(target=self.TitleUpdate).start()
         if self.option == 1:
             while True:
                 if active_count() <= self.threads:
@@ -165,7 +206,7 @@ class Main:
                     threading = Thread(target=self.ScrapeImgur).start()
         else:
             while True:
-                if active_count() <= self.threads/2:
+                if active_count() <= self.threads:
                     threading1 = Thread(target=self.ScrapePrntSc).start()
                     threading2 = Thread(target=self.ScrapeImgur).start()
             
