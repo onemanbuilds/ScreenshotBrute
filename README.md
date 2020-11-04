@@ -1,6 +1,11 @@
 # Screenshot Brute
  Download's valid screenshots from imgur and lightshot.
 
+# Installation
+```
+pip3 install -r requirements.txt
+``` 
+
 # Tool
 ![](https://i.ibb.co/2q9ZRc1/screenshot-brute-tool.png)
 
