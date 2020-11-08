@@ -132,3 +132,6 @@ output/ScreenshotBrute.exe
 prntsc_bad_links.txt
 prntsc_good_links.txt
 prntsc_image_removed_links.txt
+imgur_good_links.txt
+imgur_bad_links.txt
+ScreenshotBrute/useragents.txt
